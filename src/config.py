@@ -1,0 +1,46 @@
+"""Saari settings env vars se aati hain (GitHub Actions me workflow se, local me set/export se)."""
+import os
+
+
+def _env(name: str, default: str) -> str:
+    v = os.getenv(name)
+    return v if v not in (None, "") else default
+
+
+def _bool(name: str, default: bool) -> bool:
+    return _env(name, "1" if default else "0").lower() in ("1", "true", "yes", "on")
+
+
+# --- Chart / data ---
+SYMBOL = _env("SYMBOL", "EURUSD")
+TIMEFRAME_MIN = int(_env("TIMEFRAME_MIN", "15"))
+HEAT_URL = _env("HEAT_URL", "https://heatcharting.com/chart")
+HEAT_STATE_FILE = _env("HEAT_STATE_FILE", "heat_state.json")
+HEADLESS = _bool("HEADLESS", True)
+CHART_LOAD_WAIT_MS = int(_env("CHART_LOAD_WAIT_MS", "20000"))
+DOWNLOAD_DIR = _env("DOWNLOAD_DIR", "downloads")
+MIN_BARS = int(_env("MIN_BARS", "100"))
+# Sanity range: galat symbol download ho jaye to pakadne ke liye (EURUSD ke liye)
+PRICE_MIN = float(_env("PRICE_MIN", "0.8"))
+PRICE_MAX = float(_env("PRICE_MAX", "1.5"))
+
+# --- Indicator (BADSHA OB) ---
+PIVOT_LEN = int(_env("PIVOT_LEN", "3"))
+USE_WICK_ZONE = _bool("USE_WICK_ZONE", False)   # False = candle body zone, True = high-low
+REQUIRE_RVOL = _bool("REQUIRE_RVOL", False)
+RVOL_LEN = int(_env("RVOL_LEN", "20"))
+RVOL_MULT = float(_env("RVOL_MULT", "1.5"))
+
+# --- ntfy ---
+NTFY_SERVER = _env("NTFY_SERVER", "https://ntfy.sh")
+NTFY_TOPIC = _env("NTFY_TOPIC", "")
+NTFY_TOKEN = _env("NTFY_TOKEN", "")
+NOTIFY_ON_ERROR = _bool("NOTIFY_ON_ERROR", True)
+ERROR_ALERT_COOLDOWN_H = int(_env("ERROR_ALERT_COOLDOWN_H", "6"))
+
+# --- State ---
+STATE_FILE = _env("STATE_FILE", "state/state.json")
+# True: pehli run me purane signals ka alert NAHI bhejta (sirf baseline set karta hai)
+SILENT_FIRST_RUN = _bool("SILENT_FIRST_RUN", True)
+
+TF_LABELS = {1: "1m", 5: "5m", 15: "15m", 60: "1h", 240: "4h", 1440: "D"}
