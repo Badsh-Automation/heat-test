@@ -47,13 +47,24 @@ def _current_symbol(page) -> str:
         return ""
 
 
+def _wait_chart_loaded(page, extra_ms: int = 4000) -> None:
+    """Chart par 'Loading EX:EURUSD...' khatam hone tak ruko."""
+    try:
+        page.wait_for_function(
+            "() => !/Loading\\s+\\S+/.test(document.body.innerText)", timeout=60_000
+        )
+    except Exception:
+        pass
+    page.wait_for_timeout(extra_ms)
+
+
 def _set_timeframe(page) -> None:
     label = config.TF_LABELS.get(config.TIMEFRAME_MIN)
     if not label:
         return
     try:
         page.locator("#tfQuick").get_by_text(label, exact=True).first.click(timeout=3000)
-        page.wait_for_timeout(3000)
+        _wait_chart_loaded(page, 3000)
     except Exception:
         pass  # validate() baad me timeframe mismatch pakad lega
 
@@ -184,12 +195,21 @@ def download_csv() -> Path:
                 try:
                     if method is not None:
                         method(page)
+                    _wait_chart_loaded(page)
                     _set_timeframe(page)
                     page.screenshot(path=str(out / f"02_attempt{attempt}.png"))
                     cur = _current_symbol(page)
                     if cur and cur.upper() != config.SYMBOL.upper():
                         raise FetchError(f"chart par abhi {cur} hai, {config.SYMBOL} nahi")
-                    target = _download_once(page, out)
+                    target = None
+                    for _try in range(4):
+                        target = _download_once(page, out)
+                        rows = sum(1 for _ in open(target, encoding="utf-8", errors="ignore")) - 1
+                        if rows >= 20:
+                            break
+                        print(f"CSV me sirf {rows} rows (chart load nahi hua), {_try + 1}/4 retry...")
+                        target.unlink(missing_ok=True)
+                        page.wait_for_timeout(10_000)
                 except Exception as e:  # noqa: BLE001
                     last_err = f"{getattr(method, '__name__', 'current')}: {e}"
                     continue
