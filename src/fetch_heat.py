@@ -40,30 +40,78 @@ def _check_session(page) -> None:
         raise FetchError("SESSION_EXPIRED: /app/auth/me ne user nahi diya.")
 
 
+def _current_symbol(page) -> str:
+    try:
+        return page.locator("#symTxt").inner_text(timeout=3000).strip()
+    except Exception:
+        return ""
+
+
 def _set_timeframe(page) -> None:
     label = config.TF_LABELS.get(config.TIMEFRAME_MIN)
     if not label:
         return
     try:
-        page.get_by_text(label, exact=True).first.click(timeout=3000)
+        page.locator("#tfQuick").get_by_text(label, exact=True).first.click(timeout=3000)
         page.wait_for_timeout(3000)
     except Exception:
         pass  # validate() baad me timeframe mismatch pakad lega
 
 
-def _set_symbol(page) -> None:
-    sym = config.SYMBOL
-    if page.locator(f'input[value="{sym}"]').count():
-        return  # pehle se set hai
-    try:
-        box = page.locator('input[placeholder*="earch" i], input').first
-        box.click(timeout=3000)
-        box.fill(sym)
-        page.wait_for_timeout(1500)
-        page.keyboard.press("Enter")
-        page.wait_for_timeout(4000)
-    except Exception:
-        pass  # validate() price range se galat symbol pakad lega
+def _symbol_via_button(page) -> None:
+    """DevTools se mila: <button id="symBtn"> kholta hai search, <span id="symTxt"> current symbol dikhata hai."""
+    sym = config.SYMBOL.upper()
+    if _current_symbol(page).upper() == sym:
+        return
+    page.locator("#symBtn").click(timeout=5000)
+    page.wait_for_timeout(800)
+    page.keyboard.type(config.SYMBOL, delay=80)
+    page.wait_for_timeout(2500)
+    page.screenshot(path=str(Path(config.DOWNLOAD_DIR) / "03_search_open.png"))
+
+    def changed() -> bool:
+        return _current_symbol(page).upper() == sym
+
+    page.keyboard.press("Enter")
+    page.wait_for_timeout(3000)
+    if changed():
+        return
+    # Enter se nahi badla -> dropdown me exact-match row par click
+    for loc in (
+        page.locator(f'[role="option"]:has-text("{config.SYMBOL}")'),
+        page.locator(f'li:has-text("{config.SYMBOL}")'),
+        page.locator(f'.row:has-text("{config.SYMBOL}")'),
+        page.get_by_text(config.SYMBOL, exact=True),
+    ):
+        try:
+            loc.first.click(timeout=2500)
+            page.wait_for_timeout(3000)
+            if changed():
+                return
+        except Exception:
+            continue
+    raise FetchError(f"symbol {config.SYMBOL} select nahi hua (03_search_open.png dekho).")
+
+
+def _symbol_via_watchlist(page) -> None:
+    """Right side watchlist me symbol ki row par click (screenshot me EURUSD row dikhti hai)."""
+    row = page.get_by_text(config.SYMBOL, exact=True).last
+    row.click(timeout=5000)
+    page.wait_for_timeout(5000)
+
+
+def _symbol_via_search(page) -> None:
+    """Top-left symbol search box se."""
+    box = page.locator('input[type="search"], input[type="text"], input').first
+    box.click(timeout=5000)
+    box.press("Control+A")
+    box.type(config.SYMBOL, delay=80)
+    page.wait_for_timeout(2000)
+    page.keyboard.press("Enter")
+    page.wait_for_timeout(5000)
+
+
+SYMBOL_METHODS = (_symbol_via_button, _symbol_via_watchlist, _symbol_via_search)
 
 
 def _open_more_menu(page) -> bool:
@@ -95,6 +143,22 @@ def _open_more_menu(page) -> bool:
     return False
 
 
+def _download_once(page, out: Path) -> Path:
+    if not _open_more_menu(page):
+        page.screenshot(path=str(out / "debug_menu.png"))
+        raise FetchError("'...' menu nahi khula (debug_menu.png dekho).")
+    try:
+        with page.expect_download(timeout=30_000) as dl:
+            _menu_item(page).click()
+    except PWTimeout:
+        page.screenshot(path=str(out / "debug_download.png"))
+        raise FetchError("CSV download trigger nahi hua (debug_download.png dekho).")
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    target = out / f"{stamp}_{dl.value.suggested_filename}"
+    dl.value.save_as(str(target))
+    return target
+
+
 def download_csv() -> Path:
     out = Path(config.DOWNLOAD_DIR)
     out.mkdir(parents=True, exist_ok=True)
@@ -112,24 +176,29 @@ def download_csv() -> Path:
             page.goto(config.HEAT_URL, wait_until="domcontentloaded")
             page.wait_for_timeout(config.CHART_LOAD_WAIT_MS)
             _check_session(page)
-            _set_symbol(page)
-            _set_timeframe(page)
+            page.screenshot(path=str(out / "01_loaded.png"))
 
-            if not _open_more_menu(page):
-                page.screenshot(path=str(out / "debug_menu.png"))
-                raise FetchError("'...' menu nahi khula (debug_menu.png dekho).")
-            try:
-                with page.expect_download(timeout=30_000) as dl:
-                    _menu_item(page).click()
-            except PWTimeout:
-                page.screenshot(path=str(out / "debug_download.png"))
-                raise FetchError("CSV download trigger nahi hua (debug_download.png dekho).")
-
-            stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-            target = out / f"{stamp}_{dl.value.suggested_filename}"
-            dl.value.save_as(str(target))
-            print(f"Downloaded: {target}")
-            return target
+            last_err = "symbol set nahi hua"
+            # Pehle jo symbol chart par hai wahi check karo, phir methods try karo
+            for attempt, method in enumerate((None,) + SYMBOL_METHODS):
+                try:
+                    if method is not None:
+                        method(page)
+                    _set_timeframe(page)
+                    page.screenshot(path=str(out / f"02_attempt{attempt}.png"))
+                    cur = _current_symbol(page)
+                    if cur and cur.upper() != config.SYMBOL.upper():
+                        raise FetchError(f"chart par abhi {cur} hai, {config.SYMBOL} nahi")
+                    target = _download_once(page, out)
+                except Exception as e:  # noqa: BLE001
+                    last_err = f"{getattr(method, '__name__', 'current')}: {e}"
+                    continue
+                if config.SYMBOL.lower() in target.name.lower():
+                    print(f"Downloaded: {target}")
+                    return target
+                last_err = f"galat symbol file mili: {target.name} (chahiye {config.SYMBOL})"
+                target.unlink(missing_ok=True)
+            raise FetchError(f"{config.SYMBOL} select nahi ho paya. Last error: {last_err}")
         finally:
             browser.close()
 
