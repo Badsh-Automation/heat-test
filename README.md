@@ -12,11 +12,13 @@ GitHub Actions (cron)
   -> state/state.json    last alert yaad rakhta hai (duplicate alert nahi)
 ```
 
-## Signal rules
-- Bullish OB banta hai aur position FLAT hai -> **BUY**
-- Bearish OB banta hai aur position LONG hai -> **EXIT**
-- EXIT hone tak koi nayi entry nahi, reversal (short) nahi. SL/TP/ATR logic nahi.
-- Pivot confirm hone ke baad hi signal aata hai (PIVOT_LEN candles ki delay) -> repaint nahi.
+## Signal rules (Pine "UNKOWN BADSHA - Smart Volume Confirmed OB" ka exact port)
+- Volume pivot (length 3) par OB banta hai, lekin tabhi jab pivot candle ka volume **High** ho (RVOL > 2.0x, legacy multipliers).
+- `os` state (swing low/high) se bullish ya bearish OB decide hota hai.
+- Bullish OB = **ENTRY**, Bearish OB = **EXIT** (Pine ke labels jaisa).
+- `SIGNAL_MODE=all` (default): har naya OB par alert, Pine ke "BOTH OB" alert jaisa.
+- `SIGNAL_MODE=state`: ENTRY sirf FLAT hone par, EXIT sirf LONG hone par; EXIT tak nayi entry nahi, reversal nahi.
+- Pivot confirm hone ke baad hi signal aata hai (PIVOT_LEN candles ki delay) aur sirf closed candle par chalta hai -> repaint nahi.
 
 ## Setup (ek baar)
 1. **Session secret:** `python tools/encode_state.py D:\heat_state.json` -> `heat_state.b64` banta hai -> uska poora content GitHub secret `HEAT_STATE` me paste karo (Settings -> Secrets and variables -> Actions).
@@ -31,12 +33,14 @@ python -m pytest -q
 python -m src.main --csv downloads\your_file.csv --dry-run
 ```
 
-## Settings (env vars, defaults `src/config.py` me)
-SYMBOL, TIMEFRAME_MIN, PIVOT_LEN (3), USE_WICK_ZONE, REQUIRE_RVOL / RVOL_LEN / RVOL_MULT, SILENT_FIRST_RUN, NOTIFY_ON_ERROR.
+## Settings (env vars; defaults Pine ke defaults hain, `src/config.py` me)
+SYMBOL, TIMEFRAME_MIN, SIGNAL_MODE, PIVOT_LEN, MITIGATION (Wick/Close), MIN_STRENGTH (High/Extreme), SHOW_WEAK_OB, VOL_LEN, USE_LEGACY, HIGH_FACTOR, EXTREME_FACTOR, DETECT_MODE, Z_HIGH, Z_EXTREME, USE_PCT, PCT_MIN, SILENT_FIRST_RUN, NOTIFY_ON_ERROR.
 
 ## Dhyan rakhne wali baatein
 - **Session expire hoti hai.** Aisa hone par ntfy par "HeatCharting bot ERROR (SESSION_EXPIRED)" aayega (6 ghante me ek baar). Phir `save_state.py` se cookies dobara save karo, `encode_state.py` chalao, secret update karo.
 - **Actions minutes:** public repo me free unlimited. Private repo (free plan) me 2000 min/month; ye bot ~1.5-2 min/run x 96 runs/din x ~22 din ~ 3000-4000 min, yani limit se upar. Private rakhna ho to cron 30m/1h karo ya paid plan lo.
 - GitHub cron me 5-15 min delay normal hai; exact-second alerts ki guarantee nahi.
 - CSV me volume HeatCharting ka hona zaroori hai; chart par symbol/timeframe galat ho to `validate()` error dega (alert nahi dega).
-- `src/indicators/badsha_ob.py` abhi notes ke hisaab se OB logic use karta hai. Pine ka exact code milne par sirf `find_obs()` match karna hai.
+- Indicator badalne par state apne aap reset ho jaata hai (naya silent baseline), purane signals ka alert nahi aata.
+- Pine me `ta.pivothigh` ties (barabar volume) ka rule aise liya hai: left strictly zyada, right >= (leftmost pivot). Chart se mismatch dikhe to bata dena.
+- In-app alert "every time" intrabar fire ho sakta hai (pivot candle chalte volume se badalta hai). Ye bot sirf closed candle par chalta hai, isliye zyada bharosemand hai.

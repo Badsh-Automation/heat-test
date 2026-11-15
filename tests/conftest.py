@@ -2,35 +2,42 @@ import numpy as np
 import pandas as pd
 import pytest
 
+BASE = 1.1000
 
-def make_df(n=200, tf_min=15, start="2026-11-02 00:00", spikes=None):
-    """Flat-ish EURUSD data, base volume 100. spikes = {idx: ('down'|'up', volume)}"""
+
+def make_df(n=200, tf_min=15, start="2026-11-02 00:00", spikes=None, extra_low=None):
+    """
+    Flat market: high=BASE+0.0003, low=BASE-0.0003, volume 100 (natural pivots nahi).
+    spikes = {idx: ("bull"|"bear", volume)}
+      bull: pivot candle ka low baaki se neeche (swing low)  -> os=1 -> bullish OB
+      bear: pivot candle ka high baaki se upar (swing high) -> os=0 -> bearish OB
+    extra_low = {idx: low}  (mitigation test ke liye)
+    """
     idx = pd.date_range(start, periods=n, freq=f"{tf_min}min", tz="UTC")
-    rng = np.random.default_rng(1)
-    close = 1.10 + np.cumsum(rng.normal(0, 0.00005, n))
-    open_ = np.r_[close[0], close[:-1]]
-    vol = np.full(n, 100.0)  # flat volume: natural pivots nahi, sirf hamare spikes
-    for i, (d, v) in (spikes or {}).items():
+    high = np.full(n, BASE + 0.0003)
+    low = np.full(n, BASE - 0.0003)
+    vol = np.full(n, 100.0)
+    for i, (kind, v) in (spikes or {}).items():
         vol[i] = v
-        if d == "down":
-            open_[i], close[i] = open_[i] + 0.0004, open_[i] - 0.0004
+        if kind == "bull":
+            low[i] = BASE - 0.0010
         else:
-            open_[i], close[i] = open_[i] - 0.0004, open_[i] + 0.0004
-    high = np.maximum(open_, close) + 0.0001
-    low = np.minimum(open_, close) - 0.0001
-    return pd.DataFrame(
-        {"open": open_, "high": high, "low": low, "close": close, "volume": vol}, index=idx
-    )
+            high[i] = BASE + 0.0010
+    for i, v in (extra_low or {}).items():
+        low[i] = v
+    open_ = np.full(n, BASE)
+    close = np.full(n, BASE + 0.00005)
+    return pd.DataFrame({"open": open_, "high": high, "low": low, "close": close, "volume": vol}, index=idx)
 
 
 @pytest.fixture
 def df_signals():
     spikes = {
-        50: ("down", 1000),   # bull OB  -> BUY
-        60: ("down", 900),    # 2nd bull OB while long -> ignore
-        90: ("up", 1000),     # bear OB  -> EXIT
-        100: ("up", 900),     # bear OB while flat -> ignore
-        120: ("down", 1000),  # bull OB  -> BUY
-        150: ("up", 1000),    # bear OB  -> EXIT
+        40: ("bull", 1000),
+        60: ("bull", 900),
+        90: ("bear", 1000),
+        110: ("bear", 900),
+        130: ("bull", 1000),
+        150: ("bear", 1000),
     }
     return make_df(spikes=spikes)

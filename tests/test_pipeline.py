@@ -45,15 +45,15 @@ def test_main_first_run_silent_then_new_signal(tmp_path, monkeypatch, df_signals
     monkeypatch.setattr(config, "MIN_BARS", 50)
     monkeypatch.setattr(data, "drop_unclosed", lambda df, tf, now=None: df)
 
-    # Run 1: pehle 125 bars (BUY@53, EXIT@93, BUY@123 history me) -> silent baseline
+    # Run 1: pehle 141 bars (history me 5 OB signals) -> silent baseline
     p1 = tmp_path / "a.csv"
-    _write_csv(df_signals.iloc[:126], p1)
+    _write_csv(df_signals.iloc[:141], p1)
     assert main.run(str(p1), dry=False) == 0
     assert sent == []
     st = json.loads((tmp_path / "state.json").read_text())
-    assert st["position"] == "LONG"
+    assert st["last_signal"] == "ENTRY" and st["indicator_version"] == main.INDICATOR_VERSION
 
-    # Run 2: pura data (EXIT@153 naya) -> 1 alert
+    # Run 2: pura data (EXIT @153 naya) -> 1 alert
     p2 = tmp_path / "b.csv"
     _write_csv(df_signals, p2)
     assert main.run(str(p2), dry=False) == 0
@@ -62,3 +62,17 @@ def test_main_first_run_silent_then_new_signal(tmp_path, monkeypatch, df_signals
     # Run 3: same data dobara -> duplicate alert nahi
     assert main.run(str(p2), dry=False) == 0
     assert len(sent) == 1
+
+
+def test_state_reset_when_indicator_version_changes(tmp_path, monkeypatch, df_signals):
+    sent = []
+    monkeypatch.setattr(main.notify, "send", lambda *a, **k: sent.append(a) or True)
+    monkeypatch.setattr(config, "STATE_FILE", str(tmp_path / "state.json"))
+    monkeypatch.setattr(config, "MIN_BARS", 50)
+    monkeypatch.setattr(data, "drop_unclosed", lambda df, tf, now=None: df)
+    # purani indicator ka state (old version, bahut purana baseline) -> backlog alert nahi aana chahiye
+    (tmp_path / "state.json").write_text(json.dumps({"last_alerted_bar": "2020-01-01T00:00:00+00:00", "position": "FLAT"}))
+    p = tmp_path / "c.csv"
+    _write_csv(df_signals, p)
+    assert main.run(str(p), dry=False) == 0
+    assert sent == []

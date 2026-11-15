@@ -24,12 +24,23 @@ MIN_BARS = int(_env("MIN_BARS", "100"))
 PRICE_MIN = float(_env("PRICE_MIN", "0.8"))
 PRICE_MAX = float(_env("PRICE_MAX", "1.5"))
 
-# --- Indicator (BADSHA OB) ---
-PIVOT_LEN = int(_env("PIVOT_LEN", "3"))
-USE_WICK_ZONE = _bool("USE_WICK_ZONE", False)   # False = candle body zone, True = high-low
-REQUIRE_RVOL = _bool("REQUIRE_RVOL", False)
-RVOL_LEN = int(_env("RVOL_LEN", "20"))
-RVOL_MULT = float(_env("RVOL_MULT", "1.5"))
+# --- Indicator: UNKOWN BADSHA - Smart Volume Confirmed OB (Pine defaults) ---
+PIVOT_LEN = int(_env("PIVOT_LEN", "3"))                    # Volume Pivot Length
+MITIGATION = _env("MITIGATION", "Wick")                    # Wick | Close
+MIN_STRENGTH = _env("MIN_STRENGTH", "High")                # High | Extreme
+SHOW_WEAK_OB = _bool("SHOW_WEAK_OB", False)
+VOL_LEN = int(_env("VOL_LEN", "20"))
+USE_LEGACY = _bool("USE_LEGACY", True)                     # True => High 2.0x / Extreme 2.5x
+HIGH_FACTOR = float(_env("HIGH_FACTOR", "1.5"))
+EXTREME_FACTOR = float(_env("EXTREME_FACTOR", "2.5"))
+DETECT_MODE = _env("DETECT_MODE", "RVOL only")             # "RVOL only" | "RVOL + Z-Score"
+Z_HIGH = float(_env("Z_HIGH", "1.0"))
+Z_EXTREME = float(_env("Z_EXTREME", "2.0"))
+USE_PCT = _bool("USE_PCT", False)
+PCT_MIN = float(_env("PCT_MIN", "90"))
+# all  = har naya bullish/bearish OB par alert (Pine "BOTH OB" jaisa)
+# state = ENTRY phir EXIT, EXIT tak nayi entry nahi
+SIGNAL_MODE = _env("SIGNAL_MODE", "all")
 
 # --- ntfy ---
 NTFY_SERVER = _env("NTFY_SERVER", "https://ntfy.sh")

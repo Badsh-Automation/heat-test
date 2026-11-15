@@ -15,18 +15,25 @@ from . import config, data, notify, state as state_mod
 from .fetch_heat import FetchError, download_csv
 from .indicators.badsha_ob import Params, Signal, generate_signals
 
+INDICATOR_VERSION = "badsha-svc-ob-pine-1"
+
 
 def _fmt(sig: Signal) -> tuple[str, str, str, str]:
     tf = config.TF_LABELS.get(config.TIMEFRAME_MIN, f"{config.TIMEFRAME_MIN}m")
     ist = sig.time + timedelta(minutes=config.TIMEFRAME_MIN) + timedelta(hours=5, minutes=30)
     zone = f"{sig.ob.bottom:.5f} - {sig.ob.top:.5f}"
-    if sig.type == "BUY":
-        title = f"{config.SYMBOL} {tf} BUY (Bullish OB)"
+    if sig.type == "ENTRY":
+        title = f"{config.SYMBOL} {tf} ENTRY (Bullish OB)"
         tags, prio = "chart_with_upwards_trend,green_circle", "high"
     else:
         title = f"{config.SYMBOL} {tf} EXIT (Bearish OB)"
         tags, prio = "chart_with_downwards_trend,red_circle", "high"
-    msg = f"{sig.type} @ {sig.price:.5f}\nOB zone: {zone}\nBar close: {ist:%d-%b %H:%M} IST"
+    msg = (
+        f"{sig.type} @ {sig.price:.5f}\n"
+        f"OB zone: {zone}\n"
+        f"Pivot volume: {sig.ob.rvol:.1f}x avg\n"
+        f"Bar close: {ist:%d-%b %H:%M} IST"
+    )
     return title, msg, prio, tags
 
 
@@ -48,6 +55,8 @@ def _error_alert(st: dict, err: str, dry: bool) -> None:
 
 def run(csv_path: str | None, dry: bool) -> int:
     st = state_mod.load()
+    if st.get("indicator_version") != INDICATOR_VERSION:
+        st = {"indicator_version": INDICATOR_VERSION}   # indicator badla -> naya silent baseline
     try:
         path = csv_path or download_csv()
         df = data.load_csv(path)
@@ -58,21 +67,29 @@ def run(csv_path: str | None, dry: bool) -> int:
         return 1
 
     params = Params(
-        pivot_len=config.PIVOT_LEN,
-        use_wick_zone=config.USE_WICK_ZONE,
-        require_rvol=config.REQUIRE_RVOL,
-        rvol_len=config.RVOL_LEN,
-        rvol_mult=config.RVOL_MULT,
+        length=config.PIVOT_LEN,
+        mitigation=config.MITIGATION,
+        min_strength=config.MIN_STRENGTH,
+        show_weak_ob=config.SHOW_WEAK_OB,
+        vol_len=config.VOL_LEN,
+        use_legacy=config.USE_LEGACY,
+        high_factor=config.HIGH_FACTOR,
+        extreme_factor=config.EXTREME_FACTOR,
+        detect_mode=config.DETECT_MODE,
+        z_high=config.Z_HIGH,
+        z_extreme=config.Z_EXTREME,
+        use_pct=config.USE_PCT,
+        pct_min=config.PCT_MIN,
     )
-    signals = generate_signals(df, params)
+    signals = generate_signals(df, params, mode=config.SIGNAL_MODE)
     last_bar = df.index[-1]
     print(f"Bars: {len(df)} | last closed bar: {last_bar} | signals in history: {len(signals)}")
 
     last_alerted = st.get("last_alerted_bar")
     if last_alerted is None and config.SILENT_FIRST_RUN:
         # Baseline: purane signals ka alert nahi, sirf yaad rakho
-        st["last_alerted_bar"] = signals[-1].time.isoformat() if signals else last_bar.isoformat()
-        st["position"] = "LONG" if signals and signals[-1].type == "BUY" else "FLAT"
+        st["last_alerted_bar"] = last_bar.isoformat()
+        st["last_signal"] = signals[-1].type if signals else None
         print("Pehli run: baseline set (alert nahi bheja).")
         if not dry:
             state_mod.save(st)
@@ -86,7 +103,7 @@ def run(csv_path: str | None, dry: bool) -> int:
         if not dry:
             notify.send(title, msg, priority=prio, tags=tags)
         st["last_alerted_bar"] = s.time.isoformat()
-    st["position"] = "LONG" if signals and signals[-1].type == "BUY" else "FLAT"
+    st["last_signal"] = signals[-1].type if signals else None
     st["last_run"] = datetime.now(timezone.utc).isoformat()
     if not new:
         print("Koi naya signal nahi.")
