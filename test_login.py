@@ -5,6 +5,6 @@ with sync_playwright() as p:
     ctx = b.new_context(storage_state="heat_state.json")
     page = ctx.new_page()
     page.goto("https://heatcharting.com/chart")
-    page.wait_for_timeout(8000)
+    page.wait_for_timeout(20000)
     page.screenshot(path="test.png")
     b.close()
