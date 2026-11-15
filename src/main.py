@@ -85,6 +85,16 @@ def run(csv_path: str | None, dry: bool) -> int:
     last_bar = df.index[-1]
     print(f"Bars: {len(df)} | last closed bar: {last_bar} | signals in history: {len(signals)}")
 
+    # Chart se compare karne ke liye: pichhle signals ki list (label chart par PIVOT candle par dikhta hai)
+    for sg in signals[-8:]:
+        piv = df.index[sg.ob.pivot_idx]
+        conf_close = sg.time + timedelta(minutes=config.TIMEFRAME_MIN)
+        print(
+            f"  {sg.type:5} | chart label candle: {piv:%d-%b %H:%M} UTC | "
+            f"confirm (bar close): {conf_close:%d-%b %H:%M} UTC | zone {sg.ob.bottom:.5f}-{sg.ob.top:.5f} "
+            f"| vol {sg.ob.rvol:.1f}x"
+        )
+
     last_alerted = st.get("last_alerted_bar")
     if last_alerted is None and config.SILENT_FIRST_RUN:
         # Baseline: purane signals ka alert nahi, sirf yaad rakho
