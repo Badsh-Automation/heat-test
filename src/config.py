@@ -12,7 +12,7 @@ def _bool(name: str, default: bool) -> bool:
 
 
 # --- Chart / data ---
-SYMBOL = _env("SYMBOL", "EURUSD")
+SYMBOLS = [x.strip().upper() for x in _env("SYMBOLS", "EURUSD,GBPUSD,USDJPY,AUDUSD,USDCAD").split(",") if x.strip()]
 TIMEFRAME_MIN = int(_env("TIMEFRAME_MIN", "15"))
 HEAT_URL = _env("HEAT_URL", "https://heatcharting.com/chart")
 HEAT_STATE_FILE = _env("HEAT_STATE_FILE", "heat_state.json")
@@ -20,9 +20,32 @@ HEADLESS = _bool("HEADLESS", True)
 CHART_LOAD_WAIT_MS = int(_env("CHART_LOAD_WAIT_MS", "20000"))
 DOWNLOAD_DIR = _env("DOWNLOAD_DIR", "downloads")
 MIN_BARS = int(_env("MIN_BARS", "100"))
-# Sanity range: galat symbol download ho jaye to pakadne ke liye (EURUSD ke liye)
-PRICE_MIN = float(_env("PRICE_MIN", "0.8"))
-PRICE_MAX = float(_env("PRICE_MAX", "1.5"))
+# Sanity range: galat symbol ka data pakadne ke liye (last close is range me hona chahiye)
+PRICE_RANGES = {
+    "EURUSD": (0.8, 1.5),
+    "GBPUSD": (1.0, 1.8),
+    "USDJPY": (100.0, 200.0),
+    "AUDUSD": (0.5, 1.0),
+    "USDCAD": (1.1, 1.6),
+}
+
+# --- Time: sab kuch IST me dikhta/save hota hai ---
+TZ_NAME = "Asia/Kolkata"
+
+
+def to_ist(ts):
+    """pandas Timestamp (tz-aware) -> IST"""
+    return ts.tz_convert(TZ_NAME)
+
+
+def now_ist():
+    import pandas as pd
+    return pd.Timestamp.now(tz=TZ_NAME)
+
+
+def fmt_price(symbol: str, x: float) -> str:
+    return f"{x:.{3 if 'JPY' in symbol else 5}f}"
+
 
 # --- Indicator: UNKOWN BADSHA - Smart Volume Confirmed OB (Pine defaults) ---
 PIVOT_LEN = int(_env("PIVOT_LEN", "3"))                    # Volume Pivot Length

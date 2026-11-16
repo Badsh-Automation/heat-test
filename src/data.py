@@ -61,7 +61,7 @@ def drop_unclosed(df: pd.DataFrame, tf_min: int, now: datetime | None = None) ->
     return df[close_time <= pd.Timestamp(now)]
 
 
-def validate(df: pd.DataFrame, tf_min: int) -> None:
+def validate(df: pd.DataFrame, tf_min: int, symbol: str | None = None) -> None:
     if len(df) < config.MIN_BARS:
         raise DataError(f"Sirf {len(df)} bars mile (min {config.MIN_BARS}).")
     diffs = df.index.to_series().diff().dropna()
@@ -71,10 +71,9 @@ def validate(df: pd.DataFrame, tf_min: int) -> None:
             f"Timeframe mismatch: data ~{median_min:.0f}m ka hai, expected {tf_min}m. "
             "Chart par sahi timeframe select hua?"
         )
+    rng = config.PRICE_RANGES.get((symbol or "").upper())
     last = float(df["close"].iloc[-1])
-    if not (config.PRICE_MIN <= last <= config.PRICE_MAX):
-        raise DataError(
-            f"Price {last} range {config.PRICE_MIN}-{config.PRICE_MAX} se bahar. Galat symbol download hua?"
-        )
+    if rng and not (rng[0] <= last <= rng[1]):
+        raise DataError(f"price {last} range {rng[0]}-{rng[1]} se bahar. Galat symbol download hua?")
     if df["volume"].sum() <= 0:
         raise DataError("CSV me volume nahi hai; volume-based indicator nahi chalega.")

@@ -1,9 +1,7 @@
-"""HeatCharting par saved session se login karke chart ka CSV download karta hai."""
+"""HeatCharting par saved session se login karke, ek hi browser session me kai symbols ka CSV download karta hai."""
 from __future__ import annotations
 
-import re
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
 
 from playwright.sync_api import TimeoutError as PWTimeout
@@ -69,16 +67,16 @@ def _set_timeframe(page) -> None:
         pass  # validate() baad me timeframe mismatch pakad lega
 
 
-def _symbol_via_button(page) -> None:
-    """DevTools se mila: <button id="symBtn"> kholta hai search, <span id="symTxt"> current symbol dikhata hai."""
-    sym = config.SYMBOL.upper()
+def _symbol_via_button(page, symbol: str, out: Path) -> None:
+    """<button id="symBtn"> search kholta hai, <span id="symTxt"> current symbol dikhata hai."""
+    sym = symbol.upper()
     if _current_symbol(page).upper() == sym:
         return
     page.locator("#symBtn").click(timeout=5000)
     page.wait_for_timeout(800)
-    page.keyboard.type(config.SYMBOL, delay=80)
+    page.keyboard.type(symbol, delay=80)
     page.wait_for_timeout(2500)
-    page.screenshot(path=str(Path(config.DOWNLOAD_DIR) / "03_search_open.png"))
+    page.screenshot(path=str(out / f"{symbol}_03_search_open.png"))
 
     def changed() -> bool:
         return _current_symbol(page).upper() == sym
@@ -87,12 +85,11 @@ def _symbol_via_button(page) -> None:
     page.wait_for_timeout(3000)
     if changed():
         return
-    # Enter se nahi badla -> dropdown me exact-match row par click
     for loc in (
-        page.locator(f'[role="option"]:has-text("{config.SYMBOL}")'),
-        page.locator(f'li:has-text("{config.SYMBOL}")'),
-        page.locator(f'.row:has-text("{config.SYMBOL}")'),
-        page.get_by_text(config.SYMBOL, exact=True),
+        page.locator(f'[role="option"]:has-text("{symbol}")'),
+        page.locator(f'li:has-text("{symbol}")'),
+        page.locator(f'.row:has-text("{symbol}")'),
+        page.get_by_text(symbol, exact=True),
     ):
         try:
             loc.first.click(timeout=2500)
@@ -101,28 +98,15 @@ def _symbol_via_button(page) -> None:
                 return
         except Exception:
             continue
-    raise FetchError(f"symbol {config.SYMBOL} select nahi hua (03_search_open.png dekho).")
+    raise FetchError(f"symbol {symbol} select nahi hua ({symbol}_03_search_open.png dekho).")
 
 
-def _symbol_via_watchlist(page) -> None:
-    """Right side watchlist me symbol ki row par click (screenshot me EURUSD row dikhti hai)."""
-    row = page.get_by_text(config.SYMBOL, exact=True).last
-    row.click(timeout=5000)
+def _symbol_via_watchlist(page, symbol: str, out: Path) -> None:
+    page.get_by_text(symbol, exact=True).last.click(timeout=5000)
     page.wait_for_timeout(5000)
 
 
-def _symbol_via_search(page) -> None:
-    """Top-left symbol search box se."""
-    box = page.locator('input[type="search"], input[type="text"], input').first
-    box.click(timeout=5000)
-    box.press("Control+A")
-    box.type(config.SYMBOL, delay=80)
-    page.wait_for_timeout(2000)
-    page.keyboard.press("Enter")
-    page.wait_for_timeout(5000)
-
-
-SYMBOL_METHODS = (_symbol_via_button, _symbol_via_watchlist, _symbol_via_search)
+SYMBOL_METHODS = (_symbol_via_button, _symbol_via_watchlist)
 
 
 def _open_more_menu(page) -> bool:
@@ -135,7 +119,6 @@ def _open_more_menu(page) -> bool:
                     return True
             except Exception:
                 pass
-    # Fallback: "Install app" ke theek pehle wala icon button = "..."
     ok = page.evaluate(
         """() => {
             const els = [...document.querySelectorAll('button, a, div[role=button]')];
@@ -154,29 +137,67 @@ def _open_more_menu(page) -> bool:
     return False
 
 
-def _download_once(page, out: Path) -> Path:
+def _download_once(page, out: Path, symbol: str) -> Path:
     if not _open_more_menu(page):
-        page.screenshot(path=str(out / "debug_menu.png"))
-        raise FetchError("'...' menu nahi khula (debug_menu.png dekho).")
+        page.screenshot(path=str(out / f"{symbol}_debug_menu.png"))
+        raise FetchError("'...' menu nahi khula.")
     try:
         with page.expect_download(timeout=30_000) as dl:
             _menu_item(page).click()
     except PWTimeout:
-        page.screenshot(path=str(out / "debug_download.png"))
-        raise FetchError("CSV download trigger nahi hua (debug_download.png dekho).")
-    stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        page.screenshot(path=str(out / f"{symbol}_debug_download.png"))
+        raise FetchError("CSV download trigger nahi hua.")
+    stamp = config.now_ist().strftime("%Y%m%d_%H%M%S_IST")
     target = out / f"{stamp}_{dl.value.suggested_filename}"
     dl.value.save_as(str(target))
     return target
 
 
-def download_csv() -> Path:
+def _fetch_symbol(page, out: Path, symbol: str) -> Path:
+    last_err = "symbol set nahi hua"
+    for attempt, method in enumerate((None,) + SYMBOL_METHODS):
+        on_symbol = _current_symbol(page).upper() == symbol.upper()
+        if method is None and not on_symbol:
+            continue
+        try:
+            if method is not None:
+                method(page, symbol, out)
+            _wait_chart_loaded(page)
+            _set_timeframe(page)
+            page.screenshot(path=str(out / f"{symbol}_02_attempt{attempt}.png"))
+            cur = _current_symbol(page)
+            if cur and cur.upper() != symbol.upper():
+                raise FetchError(f"chart par abhi {cur} hai, {symbol} nahi")
+            target = None
+            for _try in range(4):
+                target = _download_once(page, out, symbol)
+                rows = sum(1 for _ in open(target, encoding="utf-8", errors="ignore")) - 1
+                if rows >= 20:
+                    break
+                print(f"[{symbol}] CSV me sirf {rows} rows (chart load nahi hua), {_try + 1}/4 retry...")
+                target.unlink(missing_ok=True)
+                page.wait_for_timeout(10_000)
+        except Exception as e:  # noqa: BLE001
+            last_err = f"{getattr(method, '__name__', 'current')}: {e}"
+            continue
+        if symbol.lower() in target.name.lower():
+            print(f"[{symbol}] Downloaded: {target}")
+            return target
+        last_err = f"galat symbol file mili: {target.name}"
+        target.unlink(missing_ok=True)
+    raise FetchError(f"{symbol} select nahi ho paya. Last error: {last_err}")
+
+
+def download_csvs(symbols: list[str]) -> tuple[dict[str, Path], dict[str, str]]:
+    """Ek browser session me sab symbols. Return: (files, errors). Session expire hone par FetchError raise."""
     out = Path(config.DOWNLOAD_DIR)
     out.mkdir(parents=True, exist_ok=True)
     state = Path(config.HEAT_STATE_FILE)
     if not state.exists():
         raise FetchError(f"{state} nahi mili (HEAT_STATE secret decode hua?).")
 
+    files: dict[str, Path] = {}
+    errors: dict[str, str] = {}
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=config.HEADLESS)
         ctx = browser.new_context(
@@ -188,43 +209,20 @@ def download_csv() -> Path:
             page.wait_for_timeout(config.CHART_LOAD_WAIT_MS)
             _check_session(page)
             page.screenshot(path=str(out / "01_loaded.png"))
-
-            last_err = "symbol set nahi hua"
-            # Pehle jo symbol chart par hai wahi check karo, phir methods try karo
-            for attempt, method in enumerate((None,) + SYMBOL_METHODS):
+            for sym in symbols:
                 try:
-                    if method is not None:
-                        method(page)
-                    _wait_chart_loaded(page)
-                    _set_timeframe(page)
-                    page.screenshot(path=str(out / f"02_attempt{attempt}.png"))
-                    cur = _current_symbol(page)
-                    if cur and cur.upper() != config.SYMBOL.upper():
-                        raise FetchError(f"chart par abhi {cur} hai, {config.SYMBOL} nahi")
-                    target = None
-                    for _try in range(4):
-                        target = _download_once(page, out)
-                        rows = sum(1 for _ in open(target, encoding="utf-8", errors="ignore")) - 1
-                        if rows >= 20:
-                            break
-                        print(f"CSV me sirf {rows} rows (chart load nahi hua), {_try + 1}/4 retry...")
-                        target.unlink(missing_ok=True)
-                        page.wait_for_timeout(10_000)
-                except Exception as e:  # noqa: BLE001
-                    last_err = f"{getattr(method, '__name__', 'current')}: {e}"
-                    continue
-                if config.SYMBOL.lower() in target.name.lower():
-                    print(f"Downloaded: {target}")
-                    return target
-                last_err = f"galat symbol file mili: {target.name} (chahiye {config.SYMBOL})"
-                target.unlink(missing_ok=True)
-            raise FetchError(f"{config.SYMBOL} select nahi ho paya. Last error: {last_err}")
+                    files[sym] = _fetch_symbol(page, out, sym)
+                except FetchError as e:
+                    errors[sym] = str(e)
+                    print(f"[{sym}] ERROR: {e}")
         finally:
             browser.close()
+    return files, errors
 
 
 if __name__ == "__main__":
     try:
-        download_csv()
-    except FetchError as e:
-        sys.exit(str(e))
+        f, e = download_csvs(config.SYMBOLS)
+    except FetchError as ex:
+        sys.exit(str(ex))
+    sys.exit(1 if e else 0)

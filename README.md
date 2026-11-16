@@ -1,6 +1,6 @@
 # heat-signal-bot
 
-HeatCharting se EURUSD ka CSV download -> BADSHA OB indicator chalao -> signal aaye to ntfy (phone) par push.
+HeatCharting se EURUSD, GBPUSD, USDJPY, AUDUSD, USDCAD ka CSV download -> BADSHA OB indicator chalao -> signal aaye to ntfy (phone) par push.
 GitHub Actions har 15m candle ke baad apne aap chalata hai.
 
 ```
@@ -34,11 +34,16 @@ python -m src.main --csv downloads\your_file.csv --dry-run
 ```
 
 ## Settings (env vars; defaults Pine ke defaults hain, `src/config.py` me)
-SYMBOL, TIMEFRAME_MIN, SIGNAL_MODE, PIVOT_LEN, MITIGATION (Wick/Close), MIN_STRENGTH (High/Extreme), SHOW_WEAK_OB, VOL_LEN, USE_LEGACY, HIGH_FACTOR, EXTREME_FACTOR, DETECT_MODE, Z_HIGH, Z_EXTREME, USE_PCT, PCT_MIN, SILENT_FIRST_RUN, NOTIFY_ON_ERROR.
+SYMBOLS (comma separated, default 5 forex pairs), TIMEFRAME_MIN, SIGNAL_MODE, PIVOT_LEN, MITIGATION (Wick/Close), MIN_STRENGTH (High/Extreme), SHOW_WEAK_OB, VOL_LEN, USE_LEGACY, HIGH_FACTOR, EXTREME_FACTOR, DETECT_MODE, Z_HIGH, Z_EXTREME, USE_PCT, PCT_MIN, SILENT_FIRST_RUN, NOTIFY_ON_ERROR.
+
+## Symbols aur time
+- Sab symbols ek hi browser session me download hote hain; har symbol ka state alag (`state/state.json` -> `symbols`). Naya symbol add karna ho to `SYMBOLS` me naam jodo (aur `src/config.py` ke `PRICE_RANGES` me uska price range).
+- Log, ntfy message aur state ka saara time **IST** me hai. (GitHub cron khud UTC me hota hai, wo badal nahi sakta.)
+- Naye symbol ki pehli run silent hoti hai (sirf baseline).
 
 ## Dhyan rakhne wali baatein
 - **Session expire hoti hai.** Aisa hone par ntfy par "HeatCharting bot ERROR (SESSION_EXPIRED)" aayega (6 ghante me ek baar). Phir `save_state.py` se cookies dobara save karo, `encode_state.py` chalao, secret update karo.
-- **Actions minutes:** public repo me free unlimited. Private repo (free plan) me 2000 min/month; ye bot ~1.5-2 min/run x 96 runs/din x ~22 din ~ 3000-4000 min, yani limit se upar. Private rakhna ho to cron 30m/1h karo ya paid plan lo.
+- **Actions minutes:** public repo me free unlimited. Private repo (free plan) me 2000 min/month; ye bot 5 symbols ke saath ~3-4 min/run x 96 runs/din x ~22 din ~ 7000+ min, yani limit se upar. Private rakhna ho to cron 30m/1h karo ya paid plan lo.
 - GitHub cron me 5-15 min delay normal hai; exact-second alerts ki guarantee nahi.
 - CSV me volume HeatCharting ka hona zaroori hai; chart par symbol/timeframe galat ho to `validate()` error dega (alert nahi dega).
 - Indicator badalne par state apne aap reset ho jaata hai (naya silent baseline), purane signals ka alert nahi aata.
