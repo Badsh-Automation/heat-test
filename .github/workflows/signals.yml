@@ -2,7 +2,8 @@ name: signals
 
 on:
   schedule:
-    # 15m candle band hone ke ~2 min baad (Mon-Fri, UTC). GitHub cron me 5-15 min delay normal hai.
+    # GitHub cron UTC me chalta hai (IST se 5:30 pehle). 15m candle band hone ke ~2 min baad, Mon-Fri.
+    # IST me ye :32, :47, :02, :17 minute par chalta hai. GitHub cron me 5-15 min delay normal hai.
     - cron: "2,17,32,47 * * * 1-5"
   workflow_dispatch:
 
@@ -16,7 +17,7 @@ concurrency:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
@@ -42,7 +43,8 @@ jobs:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
           NTFY_SERVER: ${{ secrets.NTFY_SERVER }}
           NTFY_TOKEN: ${{ secrets.NTFY_TOKEN }}
-          SYMBOL: EURUSD
+          SYMBOLS: "EURUSD,GBPUSD,USDJPY,AUDUSD,USDCAD"
+          TZ: Asia/Kolkata
           TIMEFRAME_MIN: "15"
           SIGNAL_MODE: all
         run: python -m src.main
