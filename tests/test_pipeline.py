@@ -114,3 +114,47 @@ def test_old_single_symbol_state_migrates(tmp_path, monkeypatch, df_signals):
     _write_csv(df_signals, p)
     assert main.run(str(p), False, ["EURUSD"]) == 0
     assert len(sent) == 1 and "EXIT" in sent[0][0]
+
+
+def _setup(tmp_path, monkeypatch):
+    sent = []
+    monkeypatch.setattr(main.notify, "send", lambda *a, **k: sent.append(a) or True)
+    monkeypatch.setattr(config, "STATE_FILE", str(tmp_path / "state.json"))
+    monkeypatch.setattr(config, "MIN_BARS", 50)
+    monkeypatch.setattr(data, "drop_unclosed", lambda df, tf, now=None: df)
+    return sent
+
+
+def test_mitigated_signal_not_alerted(tmp_path, monkeypatch):
+    sent = _setup(tmp_path, monkeypatch)
+    df = make_df(spikes={50: ("bull", 1000)}, extra_low={55: 1.0985})   # OB bottom 1.0990, bar 55 ne todha
+    p1, p2 = tmp_path / "a.csv", tmp_path / "b.csv"
+    _write_csv(df.iloc[:52], p1)      # OB abhi confirm nahi (confirm bar 53)
+    _write_csv(df.iloc[:70], p2)
+    assert main.run(str(p1), False, ["EURUSD"]) == 0            # baseline
+    assert main.run(str(p2), False, ["EURUSD"]) == 0            # OB bana aur mitigate bhi ho chuka
+    assert sent == []
+    # dobara chalane par bhi alert nahi (state aage badh chuka)
+    assert main.run(str(p2), False, ["EURUSD"]) == 0
+    assert sent == []
+
+
+def test_confirmed_signal_has_price_distance(tmp_path, monkeypatch):
+    sent = _setup(tmp_path, monkeypatch)
+    df = make_df(spikes={50: ("bull", 1000)})
+    p1, p2 = tmp_path / "a.csv", tmp_path / "b.csv"
+    _write_csv(df.iloc[:52], p1)
+    _write_csv(df.iloc[:70], p2)
+    assert main.run(str(p1), False, ["EURUSD"]) == 0
+    assert main.run(str(p2), False, ["EURUSD"]) == 0
+    assert len(sent) == 1
+    msg = sent[0][1]
+    assert "Abhi price: 1.10005" in msg and "zone ke UPAR 4.0 pips" in msg and "IST" in msg
+
+
+def test_distance_text_variants():
+    class OB: top, bottom = 1.1010, 1.1000
+    assert "NEECHE 5.0 pips" in main._distance("EURUSD", 1.0995, OB)
+    assert "ANDAR" in main._distance("EURUSD", 1.1005, OB)
+    class J: top, bottom = 160.50, 160.00
+    assert "UPAR 50.0 pips" in main._distance("USDJPY", 161.00, J)   # JPY: 1 pip = 0.01

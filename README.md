@@ -18,6 +18,8 @@ GitHub Actions (cron)
 - Bullish OB = **ENTRY**, Bearish OB = **EXIT** (Pine ke labels jaisa).
 - `SIGNAL_MODE=all` (default): har naya OB par alert, Pine ke "BOTH OB" alert jaisa.
 - `SIGNAL_MODE=state`: ENTRY sirf FLAT hone par, EXIT sirf LONG hone par; EXIT tak nayi entry nahi, reversal nahi.
+- Jo OB alert aane se pehle hi mitigate ho chuka ho (price zone todkar nikal gaya), uska alert nahi aata (`SKIP_MITIGATED=1`, default). Log me `SKIPPED` dikhta hai.
+- Alert me OB zone ke saath **abhi ka price aur zone se kitne pips door** hai, wo bhi aata hai.
 - Pivot confirm hone ke baad hi signal aata hai (PIVOT_LEN candles ki delay) aur sirf closed candle par chalta hai -> repaint nahi.
 
 ## Setup (ek baar)

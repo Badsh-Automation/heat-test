@@ -25,7 +25,17 @@ def _ist(ts: pd.Timestamp) -> str:
     return f"{config.to_ist(ts):%d-%b %H:%M} IST"
 
 
-def _fmt(symbol: str, sig: Signal) -> tuple[str, str, str, str]:
+def _distance(symbol: str, price: float, ob) -> str:
+    """Current price OB zone se kitni door hai (pips me)."""
+    pip = config.pip_size(symbol)
+    if price > ob.top:
+        return f"zone ke UPAR {(price - ob.top) / pip:.1f} pips door"
+    if price < ob.bottom:
+        return f"zone ke NEECHE {(ob.bottom - price) / pip:.1f} pips door"
+    return "price zone ke ANDAR hai (0 pips)"
+
+
+def _fmt(symbol: str, sig: Signal, last_price: float, last_close_time: pd.Timestamp) -> tuple[str, str, str, str]:
     px = lambda x: config.fmt_price(symbol, x)  # noqa: E731
     bar_close = sig.time + pd.Timedelta(minutes=config.TIMEFRAME_MIN)
     if sig.type == "ENTRY":
@@ -37,8 +47,10 @@ def _fmt(symbol: str, sig: Signal) -> tuple[str, str, str, str]:
     msg = (
         f"{sig.type} @ {px(sig.price)}\n"
         f"OB zone: {px(sig.ob.bottom)} - {px(sig.ob.top)}\n"
+        f"Abhi price: {px(last_price)} ({_distance(symbol, last_price, sig.ob)})\n"
         f"Pivot volume: {sig.ob.rvol:.1f}x avg\n"
-        f"Bar close: {_ist(bar_close)}"
+        f"Signal bar close: {_ist(bar_close)}\n"
+        f"Price time: {_ist(last_close_time)}"
     )
     return title, msg, prio, tags
 
@@ -83,7 +95,7 @@ def _process(symbol: str, path, st_sym: dict, dry: bool) -> dict:
     for sg in signals[-8:]:
         piv = df.index[sg.ob.pivot_idx]
         print(
-            f"  {sg.type:5} | chart label candle: {_ist(piv)} | "
+            f"  {sg.type:5}{' [MITIGATED]' if sg.ob.mitigated_idx is not None else ''} | chart label candle: {_ist(piv)} | "
             f"confirm (bar close): {_ist(sg.time + pd.Timedelta(minutes=config.TIMEFRAME_MIN))} | "
             f"zone {config.fmt_price(symbol, sg.ob.bottom)}-{config.fmt_price(symbol, sg.ob.top)} | vol {sg.ob.rvol:.1f}x"
         )
@@ -97,12 +109,17 @@ def _process(symbol: str, path, st_sym: dict, dry: bool) -> dict:
     cutoff = pd.Timestamp(last_alerted) if last_alerted else None
     new = [s for s in signals if cutoff is None or s.time > cutoff]
     out = dict(st_sym)
+    last_price = float(df["close"].iloc[-1])
+    last_close_time = last_bar + pd.Timedelta(minutes=config.TIMEFRAME_MIN)
     for s in new:
-        title, msg, prio, tags = _fmt(symbol, s)
+        out["last_alerted_bar"] = config.to_ist(s.time).isoformat()   # skip ho ya alert, dobara process nahi hoga
+        if config.SKIP_MITIGATED and s.ob.mitigated_idx is not None:
+            print(f"[{symbol}] SKIPPED (OB pehle hi mitigate ho gaya): {s.type} @ {_ist(s.time)}")
+            continue
+        title, msg, prio, tags = _fmt(symbol, s, last_price, last_close_time)
         print(f"[{symbol}] NEW SIGNAL -> {title} | {msg!r}")
         if not dry:
             notify.send(title, msg, priority=prio, tags=tags)
-        out["last_alerted_bar"] = config.to_ist(s.time).isoformat()
     out["last_signal"] = signals[-1].type if signals else None
     out["last_run"] = config.now_ist().isoformat()
     if not new:

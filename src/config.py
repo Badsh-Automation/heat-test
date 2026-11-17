@@ -43,6 +43,10 @@ def now_ist():
     return pd.Timestamp.now(tz=TZ_NAME)
 
 
+def pip_size(symbol: str) -> float:
+    return 0.01 if "JPY" in symbol else 0.0001
+
+
 def fmt_price(symbol: str, x: float) -> str:
     return f"{x:.{3 if 'JPY' in symbol else 5}f}"
 
@@ -64,6 +68,8 @@ PCT_MIN = float(_env("PCT_MIN", "90"))
 # all  = har naya bullish/bearish OB par alert (Pine "BOTH OB" jaisa)
 # state = ENTRY phir EXIT, EXIT tak nayi entry nahi
 SIGNAL_MODE = _env("SIGNAL_MODE", "all")
+# True: jo OB alert se pehle hi mitigate ho chuka ho (price zone todke nikal gaya), uska alert nahi bhejta
+SKIP_MITIGATED = _bool("SKIP_MITIGATED", True)
 
 # --- ntfy ---
 NTFY_SERVER = _env("NTFY_SERVER", "https://ntfy.sh")
