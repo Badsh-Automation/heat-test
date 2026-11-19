@@ -1,5 +1,7 @@
 # heat-signal-bot
 
+**Latest signals (har symbol ke last 3): [SIGNALS.md](SIGNALS.md)**
+
 HeatCharting se EURUSD, GBPUSD, USDJPY, AUDUSD, USDCAD ka CSV download -> BADSHA OB indicator chalao -> signal aaye to ntfy (phone) par push.
 GitHub Actions har 15m candle ke baad apne aap chalata hai.
 
@@ -9,7 +11,9 @@ GitHub Actions (cron)
   -> src/data.py         CSV clean + forming candle hatao + timeframe/price/volume checks
   -> src/indicators/badsha_ob.py   volume-pivot OB, BUY / EXIT state machine
   -> src/notify.py       ntfy push
-  -> state/state.json    last alert yaad rakhta hai (duplicate alert nahi)
+  -> src/report.py       message format, SL, pip diff, SIGNALS.md table
+  -> state/state.json    last alert + har symbol ke last 3 signal yaad rakhta hai
+  -> SIGNALS.md          GitHub pe table (har run par update)
 ```
 
 ## Signal rules (Pine "UNKOWN BADSHA - Smart Volume Confirmed OB" ka exact port)
@@ -19,7 +23,16 @@ GitHub Actions (cron)
 - `SIGNAL_MODE=all` (default): har naya OB par alert, Pine ke "BOTH OB" alert jaisa.
 - `SIGNAL_MODE=state`: ENTRY sirf FLAT hone par, EXIT sirf LONG hone par; EXIT tak nayi entry nahi, reversal nahi.
 - Jo OB alert aane se pehle hi mitigate ho chuka ho (price zone todkar nikal gaya), uska alert nahi aata (`SKIP_MITIGATED=1`, default). Log me `SKIPPED` dikhta hai.
-- Alert me OB zone ke saath **abhi ka price aur zone se kitne pips door** hai, wo bhi aata hai.
+- Alert ka format (ntfy aur SIGNALS.md table dono me same fields):
+  ```
+  EURUSD | EXIT
+  Zone: 1.10617 - 1.10691
+  Pip Diff: 7.4          (zone ki width, pips me; JPY me 1 pip = 0.01)
+  Time: 13-Nov 19:00 IST (chart pe label wali candle)
+  Confirm: 13-Nov 20:00 IST (signal bar close)
+  SL: 1.10791
+  ```
+- SL: EXIT = zone ka upar wala price + 100 points, ENTRY = zone ka neeche wala price - 100 points (100 points = EURUSD 0.00100, USDJPY 0.100). `SL_POINTS` env se badal sakte ho.
 - Pivot confirm hone ke baad hi signal aata hai (PIVOT_LEN candles ki delay) aur sirf closed candle par chalta hai -> repaint nahi.
 
 ## Setup (ek baar)
@@ -31,12 +44,12 @@ GitHub Actions (cron)
 ## Local test
 ```
 pip install -r requirements.txt
-python -m pytest -q
+python -m pytest tests -q
 python -m src.main --csv downloads\your_file.csv --dry-run
 ```
 
 ## Settings (env vars; defaults Pine ke defaults hain, `src/config.py` me)
-SYMBOLS (comma separated, default 5 forex pairs), TIMEFRAME_MIN, SIGNAL_MODE, PIVOT_LEN, MITIGATION (Wick/Close), MIN_STRENGTH (High/Extreme), SHOW_WEAK_OB, VOL_LEN, USE_LEGACY, HIGH_FACTOR, EXTREME_FACTOR, DETECT_MODE, Z_HIGH, Z_EXTREME, USE_PCT, PCT_MIN, SILENT_FIRST_RUN, NOTIFY_ON_ERROR.
+SYMBOLS (comma separated, default 5 forex pairs), SL_POINTS, SIGNALS_MD_FILE (khali = table band), TIMEFRAME_MIN, SIGNAL_MODE, PIVOT_LEN, MITIGATION (Wick/Close), MIN_STRENGTH (High/Extreme), SHOW_WEAK_OB, VOL_LEN, USE_LEGACY, HIGH_FACTOR, EXTREME_FACTOR, DETECT_MODE, Z_HIGH, Z_EXTREME, USE_PCT, PCT_MIN, SILENT_FIRST_RUN, NOTIFY_ON_ERROR.
 
 ## Symbols aur time
 - Sab symbols ek hi browser session me download hote hain; har symbol ka state alag (`state/state.json` -> `symbols`). Naya symbol add karna ho to `SYMBOLS` me naam jodo (aur `src/config.py` ke `PRICE_RANGES` me uska price range).

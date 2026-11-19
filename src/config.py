@@ -47,8 +47,17 @@ def pip_size(symbol: str) -> float:
     return 0.01 if "JPY" in symbol else 0.0001
 
 
+def digits(symbol: str) -> int:
+    return 3 if "JPY" in symbol else 5
+
+
+def point_size(symbol: str) -> float:
+    """1 point = sabse chhota price step (EURUSD 0.00001, USDJPY 0.001)."""
+    return 10 ** -digits(symbol)
+
+
 def fmt_price(symbol: str, x: float) -> str:
-    return f"{x:.{3 if 'JPY' in symbol else 5}f}"
+    return f"{x:.{digits(symbol)}f}"
 
 
 # --- Indicator: UNKOWN BADSHA - Smart Volume Confirmed OB (Pine defaults) ---
@@ -77,6 +86,10 @@ NTFY_TOPIC = _env("NTFY_TOPIC", "")
 NTFY_TOKEN = _env("NTFY_TOKEN", "")
 NOTIFY_ON_ERROR = _bool("NOTIFY_ON_ERROR", True)
 ERROR_ALERT_COOLDOWN_H = int(_env("ERROR_ALERT_COOLDOWN_H", "6"))
+
+# --- SL / report ---
+SL_POINTS = int(_env("SL_POINTS", "100"))          # zone ke bahar SL kitne points door
+SIGNALS_MD_FILE = _env("SIGNALS_MD_FILE", "SIGNALS.md")   # khali ("") karne par file nahi banti
 
 # --- State ---
 STATE_FILE = _env("STATE_FILE", "state/state.json")

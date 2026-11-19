@@ -139,22 +139,58 @@ def test_mitigated_signal_not_alerted(tmp_path, monkeypatch):
     assert sent == []
 
 
-def test_confirmed_signal_has_price_distance(tmp_path, monkeypatch):
+def test_alert_message_new_format(tmp_path, monkeypatch):
     sent = _setup(tmp_path, monkeypatch)
-    df = make_df(spikes={50: ("bull", 1000)})
+    df = make_df(spikes={50: ("bull", 1000)})   # OB: bottom 1.0990, top hl2 = 1.09965, pivot bar 50
     p1, p2 = tmp_path / "a.csv", tmp_path / "b.csv"
     _write_csv(df.iloc[:52], p1)
     _write_csv(df.iloc[:70], p2)
     assert main.run(str(p1), False, ["EURUSD"]) == 0
     assert main.run(str(p2), False, ["EURUSD"]) == 0
     assert len(sent) == 1
-    msg = sent[0][1]
-    assert "Abhi price: 1.10005" in msg and "zone ke UPAR 4.0 pips" in msg and "IST" in msg
+    lines = sent[0][1].split("\n")
+    assert lines[0] == "EURUSD | ENTRY"
+    assert lines[1] == "Zone: 1.09900 - 1.09965"
+    assert lines[2] == "Pip Diff: 6.5"
+    assert lines[3].startswith("Time: ") and lines[3].endswith(" IST")
+    assert lines[4].startswith("Confirm: ") and lines[4].endswith(" IST")
+    assert lines[5] == "SL: 1.09800"            # ENTRY: bottom 1.09900 - 100 points (0.00100)
+    assert len(lines) == 6 and "Abhi price" not in sent[0][1]
 
 
-def test_distance_text_variants():
-    class OB: top, bottom = 1.1010, 1.1000
-    assert "NEECHE 5.0 pips" in main._distance("EURUSD", 1.0995, OB)
-    assert "ANDAR" in main._distance("EURUSD", 1.1005, OB)
-    class J: top, bottom = 160.50, 160.00
-    assert "UPAR 50.0 pips" in main._distance("USDJPY", 161.00, J)   # JPY: 1 pip = 0.01
+def test_sl_and_pip_diff_rules():
+    from src import report
+    # EXIT: upar wala + 100 points; JPY me 100 points = 0.100
+    assert report.sl_price("USDJPY", "EXIT", 159.872, 160.098) == pytest.approx(160.198)
+    assert report.sl_price("EURUSD", "EXIT", 1.10617, 1.10691) == pytest.approx(1.10791)
+    # ENTRY: neeche wala - 100 points
+    assert report.sl_price("USDCAD", "ENTRY", 1.40593, 1.40801) == pytest.approx(1.40493)
+    assert report.pip_diff("EURUSD", 1.10617, 1.10691) == 7.4
+    assert report.pip_diff("USDJPY", 159.872, 160.098) == 22.6      # JPY: 1 pip = 0.01
+
+
+def test_recent_3_per_symbol_and_signals_md(tmp_path, monkeypatch, df_signals):
+    _setup(tmp_path, monkeypatch)
+    md = tmp_path / "SIGNALS.md"
+    monkeypatch.setattr(config, "SIGNALS_MD_FILE", str(md))
+    p = tmp_path / "c.csv"
+    _write_csv(df_signals, p)                       # history me 6 signal
+    assert main.run(str(p), False, ["EURUSD"]) == 0
+    st = json.loads((tmp_path / "state.json").read_text())
+    recent = st["symbols"]["EURUSD"]["recent"]
+    assert [r["type"] for r in recent] == ["EXIT", "ENTRY", "EXIT"]      # naya upar, sirf 3
+    lines = md.read_text(encoding="utf-8").splitlines()
+    assert "| Symbol | Signal | Zone | Pip Diff | Time | Confirm | SL |" in lines
+    rows = [l for l in lines if l.startswith("| EURUSD |")]
+    assert len(rows) == 3 and "| EXIT |" in rows[0]
+    assert any(l.startswith("| USDJPY | - |") for l in lines)             # signal nahi -> dash row
+
+
+def test_dry_run_does_not_write_signals_md(tmp_path, monkeypatch, df_signals):
+    _setup(tmp_path, monkeypatch)
+    md = tmp_path / "SIGNALS.md"
+    monkeypatch.setattr(config, "SIGNALS_MD_FILE", str(md))
+    p = tmp_path / "c.csv"
+    _write_csv(df_signals, p)
+    assert main.run(str(p), True, ["EURUSD"]) == 0
+    assert not md.exists()
