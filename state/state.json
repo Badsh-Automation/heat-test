@@ -3,28 +3,150 @@
   "symbols": {
     "AUDUSD": {
       "last_alerted_bar": "2026-11-19T06:45:00+05:30",
-      "last_run": "2026-11-19T20:03:43.687801+05:30",
-      "last_signal": "EXIT"
+      "last_run": "2026-11-19T20:18:32.999667+05:30",
+      "last_signal": "EXIT",
+      "recent": [
+        {
+          "confirm": "19-Nov 07:00 IST",
+          "pip_diff": "18.0",
+          "sl": "0.67284",
+          "time": "19-Nov 06:00 IST",
+          "type": "EXIT",
+          "zone": "0.67004 - 0.67184"
+        },
+        {
+          "confirm": "13-Nov 20:00 IST",
+          "pip_diff": "7.9",
+          "sl": "0.68129",
+          "time": "13-Nov 19:00 IST",
+          "type": "EXIT",
+          "zone": "0.67950 - 0.68029"
+        },
+        {
+          "confirm": "10-Nov 20:00 IST",
+          "pip_diff": "18.7",
+          "sl": "0.69180",
+          "time": "10-Nov 19:00 IST",
+          "type": "EXIT",
+          "zone": "0.68894 - 0.69080"
+        }
+      ]
     },
     "EURUSD": {
       "last_alerted_bar": "2026-11-13T21:45:00+00:00",
-      "last_run": "2026-11-19T20:03:43.624029+05:30",
-      "last_signal": "EXIT"
+      "last_run": "2026-11-19T20:18:32.943046+05:30",
+      "last_signal": "EXIT",
+      "recent": [
+        {
+          "confirm": "13-Nov 20:00 IST",
+          "pip_diff": "7.4",
+          "sl": "1.10791",
+          "time": "13-Nov 19:00 IST",
+          "type": "EXIT",
+          "zone": "1.10617 - 1.10691"
+        },
+        {
+          "confirm": "12-Nov 19:30 IST",
+          "pip_diff": "9.0",
+          "sl": "1.11031",
+          "time": "12-Nov 18:30 IST",
+          "type": "EXIT",
+          "zone": "1.10841 - 1.10931"
+        },
+        {
+          "confirm": "12-Nov 09:00 IST",
+          "pip_diff": "10.7",
+          "sl": "1.10976",
+          "time": "12-Nov 08:00 IST",
+          "type": "EXIT",
+          "zone": "1.10770 - 1.10876"
+        }
+      ]
     },
     "GBPUSD": {
       "last_alerted_bar": "2026-11-16T19:45:00+05:30",
-      "last_run": "2026-11-19T20:03:43.645678+05:30",
-      "last_signal": "EXIT"
+      "last_run": "2026-11-19T20:18:32.962362+05:30",
+      "last_signal": "EXIT",
+      "recent": [
+        {
+          "confirm": "13-Nov 20:00 IST",
+          "pip_diff": "10.2",
+          "sl": "1.32605",
+          "time": "13-Nov 19:00 IST",
+          "type": "EXIT",
+          "zone": "1.32403 - 1.32505"
+        },
+        {
+          "confirm": "10-Nov 20:00 IST",
+          "pip_diff": "23.0",
+          "sl": "1.34460",
+          "time": "10-Nov 19:00 IST",
+          "type": "EXIT",
+          "zone": "1.34130 - 1.34360"
+        },
+        {
+          "confirm": "10-Nov 15:30 IST",
+          "pip_diff": "12.3",
+          "sl": "1.34639",
+          "time": "10-Nov 14:30 IST",
+          "type": "EXIT",
+          "zone": "1.34416 - 1.34539"
+        }
+      ]
     },
     "USDCAD": {
       "last_alerted_bar": "2026-11-16T20:00:00+05:30",
-      "last_run": "2026-11-19T20:03:43.708423+05:30",
-      "last_signal": "ENTRY"
+      "last_run": "2026-11-19T20:18:33.018411+05:30",
+      "last_signal": "ENTRY",
+      "recent": [
+        {
+          "confirm": "10-Nov 20:00 IST",
+          "pip_diff": "18.7",
+          "sl": "1.41186",
+          "time": "10-Nov 19:00 IST",
+          "type": "ENTRY",
+          "zone": "1.41286 - 1.41473"
+        },
+        {
+          "confirm": "06-Nov 20:00 IST",
+          "pip_diff": "20.8",
+          "sl": "1.40493",
+          "time": "06-Nov 19:00 IST",
+          "type": "ENTRY",
+          "zone": "1.40593 - 1.40801"
+        }
+      ]
     },
     "USDJPY": {
       "last_alerted_bar": "2026-11-17T21:45:00+05:30",
-      "last_run": "2026-11-19T20:03:43.666884+05:30",
-      "last_signal": "EXIT"
+      "last_run": "2026-11-19T20:18:32.981171+05:30",
+      "last_signal": "EXIT",
+      "recent": [
+        {
+          "confirm": "17-Nov 22:00 IST",
+          "pip_diff": "13.7",
+          "sl": "159.496",
+          "time": "17-Nov 21:00 IST",
+          "type": "EXIT",
+          "zone": "159.259 - 159.396"
+        },
+        {
+          "confirm": "17-Nov 06:30 IST",
+          "pip_diff": "7.3",
+          "sl": "159.622",
+          "time": "17-Nov 05:30 IST",
+          "type": "EXIT",
+          "zone": "159.448 - 159.522"
+        },
+        {
+          "confirm": "16-Nov 06:30 IST",
+          "pip_diff": "8.8",
+          "sl": "159.914",
+          "time": "16-Nov 05:30 IST",
+          "type": "EXIT",
+          "zone": "159.726 - 159.814"
+        }
+      ]
     }
   }
 }
