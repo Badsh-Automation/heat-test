@@ -19,4 +19,4 @@ Har symbol ke last 3 signal (naya upar). Time IST me. SL = zone ke bahar 100 poi
 | USDCAD | ENTRY | 1.41286 - 1.41473 | 18.7 | 10-Nov 19:00 IST | 10-Nov 20:00 IST | 1.41186 |
 | USDCAD | ENTRY | 1.40593 - 1.40801 | 20.8 | 06-Nov 19:00 IST | 06-Nov 20:00 IST | 1.40493 |
 
-_Last run: 2026-11-20T03:03:37.666131+05:30_
+_Last run: 2026-11-20T03:18:34.484184+05:30_
