@@ -4,7 +4,7 @@
   "symbols": {
     "AUDUSD": {
       "last_alerted_bar": "2026-11-19T06:45:00+05:30",
-      "last_run": "2026-11-21T04:51:46.108335+05:30",
+      "last_run": "2026-11-21T05:03:31.381032+05:30",
       "last_signal": "EXIT",
       "recent": [
         {
@@ -35,7 +35,7 @@
     },
     "EURUSD": {
       "last_alerted_bar": "2026-11-13T21:45:00+00:00",
-      "last_run": "2026-11-21T04:51:46.058176+05:30",
+      "last_run": "2026-11-21T05:03:31.312050+05:30",
       "last_signal": "EXIT",
       "recent": [
         {
@@ -66,7 +66,7 @@
     },
     "GBPUSD": {
       "last_alerted_bar": "2026-11-16T19:45:00+05:30",
-      "last_run": "2026-11-21T04:51:46.075060+05:30",
+      "last_run": "2026-11-21T05:03:31.334967+05:30",
       "last_signal": "EXIT",
       "recent": [
         {
@@ -97,13 +97,30 @@
     },
     "USDCAD": {
       "last_alerted_bar": "2026-11-16T20:00:00+05:30",
-      "last_run": "2026-11-21T04:51:46.118404+05:30",
-      "last_signal": null,
-      "recent": []
+      "last_run": "2026-11-21T05:03:31.403726+05:30",
+      "last_signal": "ENTRY",
+      "recent": [
+        {
+          "confirm": "10-Nov 20:00 IST",
+          "pip_diff": "18.7",
+          "sl": "1.41186",
+          "time": "10-Nov 19:00 IST",
+          "type": "ENTRY",
+          "zone": "1.41286 - 1.41473"
+        },
+        {
+          "confirm": "06-Nov 20:00 IST",
+          "pip_diff": "20.8",
+          "sl": "1.40493",
+          "time": "06-Nov 19:00 IST",
+          "type": "ENTRY",
+          "zone": "1.40593 - 1.40801"
+        }
+      ]
     },
     "USDJPY": {
       "last_alerted_bar": "2026-11-20T07:15:00+05:30",
-      "last_run": "2026-11-21T04:51:46.091743+05:30",
+      "last_run": "2026-11-21T05:03:31.358155+05:30",
       "last_signal": "EXIT",
       "recent": [
         {
