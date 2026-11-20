@@ -4,7 +4,7 @@
   "symbols": {
     "AUDUSD": {
       "last_alerted_bar": "2026-11-19T06:45:00+05:30",
-      "last_run": "2026-11-20T07:18:21.769622+05:30",
+      "last_run": "2026-11-20T07:33:31.448567+05:30",
       "last_signal": "EXIT",
       "recent": [
         {
@@ -35,7 +35,7 @@
     },
     "EURUSD": {
       "last_alerted_bar": "2026-11-13T21:45:00+00:00",
-      "last_run": "2026-11-20T07:18:21.733757+05:30",
+      "last_run": "2026-11-20T07:33:31.161041+05:30",
       "last_signal": "EXIT",
       "recent": [
         {
@@ -66,7 +66,7 @@
     },
     "GBPUSD": {
       "last_alerted_bar": "2026-11-16T19:45:00+05:30",
-      "last_run": "2026-11-20T07:18:21.745823+05:30",
+      "last_run": "2026-11-20T07:33:31.183614+05:30",
       "last_signal": "EXIT",
       "recent": [
         {
@@ -97,7 +97,7 @@
     },
     "USDCAD": {
       "last_alerted_bar": "2026-11-16T20:00:00+05:30",
-      "last_run": "2026-11-20T07:18:21.781132+05:30",
+      "last_run": "2026-11-20T07:33:31.470359+05:30",
       "last_signal": "ENTRY",
       "recent": [
         {
@@ -119,10 +119,18 @@
       ]
     },
     "USDJPY": {
-      "last_alerted_bar": "2026-11-17T21:45:00+05:30",
-      "last_run": "2026-11-20T07:18:21.757741+05:30",
+      "last_alerted_bar": "2026-11-20T07:15:00+05:30",
+      "last_run": "2026-11-20T07:33:31.425304+05:30",
       "last_signal": "EXIT",
       "recent": [
+        {
+          "confirm": "20-Nov 07:30 IST",
+          "pip_diff": "9.0",
+          "sl": "159.539",
+          "time": "20-Nov 06:30 IST",
+          "type": "EXIT",
+          "zone": "159.349 - 159.439"
+        },
         {
           "confirm": "17-Nov 22:00 IST",
           "pip_diff": "13.7",
@@ -138,14 +146,6 @@
           "time": "17-Nov 05:30 IST",
           "type": "EXIT",
           "zone": "159.448 - 159.522"
-        },
-        {
-          "confirm": "16-Nov 06:30 IST",
-          "pip_diff": "8.8",
-          "sl": "159.914",
-          "time": "16-Nov 05:30 IST",
-          "type": "EXIT",
-          "zone": "159.726 - 159.814"
         }
       ]
     }
