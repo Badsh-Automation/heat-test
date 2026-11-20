@@ -4,7 +4,7 @@
   "symbols": {
     "AUDUSD": {
       "last_alerted_bar": "2026-11-19T06:45:00+05:30",
-      "last_run": "2026-11-20T21:33:49.535963+05:30",
+      "last_run": "2026-11-20T21:49:55.556106+05:30",
       "last_signal": "EXIT",
       "recent": [
         {
@@ -35,7 +35,7 @@
     },
     "EURUSD": {
       "last_alerted_bar": "2026-11-13T21:45:00+00:00",
-      "last_run": "2026-11-20T21:33:49.466489+05:30",
+      "last_run": "2026-11-20T21:49:55.496194+05:30",
       "last_signal": "EXIT",
       "recent": [
         {
@@ -66,7 +66,7 @@
     },
     "GBPUSD": {
       "last_alerted_bar": "2026-11-16T19:45:00+05:30",
-      "last_run": "2026-11-20T21:33:49.489962+05:30",
+      "last_run": "2026-11-20T21:49:55.510912+05:30",
       "last_signal": "EXIT",
       "recent": [
         {
@@ -84,20 +84,12 @@
           "time": "10-Nov 19:00 IST",
           "type": "EXIT",
           "zone": "1.34130 - 1.34360"
-        },
-        {
-          "confirm": "10-Nov 15:30 IST",
-          "pip_diff": "12.3",
-          "sl": "1.34639",
-          "time": "10-Nov 14:30 IST",
-          "type": "EXIT",
-          "zone": "1.34416 - 1.34539"
         }
       ]
     },
     "USDCAD": {
       "last_alerted_bar": "2026-11-16T20:00:00+05:30",
-      "last_run": "2026-11-20T21:33:49.558315+05:30",
+      "last_run": "2026-11-20T21:49:55.570618+05:30",
       "last_signal": "ENTRY",
       "recent": [
         {
@@ -107,20 +99,12 @@
           "time": "10-Nov 19:00 IST",
           "type": "ENTRY",
           "zone": "1.41286 - 1.41473"
-        },
-        {
-          "confirm": "06-Nov 20:00 IST",
-          "pip_diff": "20.8",
-          "sl": "1.40493",
-          "time": "06-Nov 19:00 IST",
-          "type": "ENTRY",
-          "zone": "1.40593 - 1.40801"
         }
       ]
     },
     "USDJPY": {
       "last_alerted_bar": "2026-11-20T07:15:00+05:30",
-      "last_run": "2026-11-20T21:33:49.513232+05:30",
+      "last_run": "2026-11-20T21:49:55.533642+05:30",
       "last_signal": "EXIT",
       "recent": [
         {
