@@ -8,8 +8,6 @@ Har symbol ke last 3 signal (naya upar). Time IST me. SL = zone ke bahar 100 poi
 | EURUSD | EXIT | 1.10841 - 1.10931 | 9.0 | 12-Nov 18:30 IST | 12-Nov 19:30 IST | 1.11031 |
 | EURUSD | EXIT | 1.10770 - 1.10876 | 10.7 | 12-Nov 08:00 IST | 12-Nov 09:00 IST | 1.10976 |
 | GBPUSD | EXIT | 1.32403 - 1.32505 | 10.2 | 13-Nov 19:00 IST | 13-Nov 20:00 IST | 1.32605 |
-| GBPUSD | EXIT | 1.34130 - 1.34360 | 23.0 | 10-Nov 19:00 IST | 10-Nov 20:00 IST | 1.34460 |
-| GBPUSD | EXIT | 1.34416 - 1.34539 | 12.3 | 10-Nov 14:30 IST | 10-Nov 15:30 IST | 1.34639 |
 | USDJPY | EXIT | 159.349 - 159.439 | 9.0 | 20-Nov 06:30 IST | 20-Nov 07:30 IST | 159.539 |
 | USDJPY | EXIT | 159.259 - 159.396 | 13.7 | 17-Nov 21:00 IST | 17-Nov 22:00 IST | 159.496 |
 | USDJPY | EXIT | 159.448 - 159.522 | 7.3 | 17-Nov 05:30 IST | 17-Nov 06:30 IST | 159.622 |
@@ -19,4 +17,4 @@ Har symbol ke last 3 signal (naya upar). Time IST me. SL = zone ke bahar 100 poi
 | USDCAD | ENTRY | 1.41286 - 1.41473 | 18.7 | 10-Nov 19:00 IST | 10-Nov 20:00 IST | 1.41186 |
 | USDCAD | ENTRY | 1.40593 - 1.40801 | 20.8 | 06-Nov 19:00 IST | 06-Nov 20:00 IST | 1.40493 |
 
-_Last run: 2026-11-22T12:03:40.462529+05:30_
+_Last run: 2026-11-22T12:19:00.377663+05:30_
