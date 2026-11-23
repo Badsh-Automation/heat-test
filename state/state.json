@@ -4,7 +4,7 @@
   "symbols": {
     "AUDUSD": {
       "last_alerted_bar": "2026-11-23T04:30:00+05:30",
-      "last_run": "2026-11-23T19:03:19.487742+05:30",
+      "last_run": "2026-11-23T19:18:35.701622+05:30",
       "last_signal": "ENTRY",
       "recent": [
         {
@@ -34,10 +34,18 @@
       ]
     },
     "EURUSD": {
-      "last_alerted_bar": "2026-11-13T21:45:00+00:00",
-      "last_run": "2026-11-23T19:03:19.458435+05:30",
+      "last_alerted_bar": "2026-11-23T19:00:00+05:30",
+      "last_run": "2026-11-23T19:18:35.661638+05:30",
       "last_signal": "EXIT",
       "recent": [
+        {
+          "confirm": "23-Nov 19:15 IST",
+          "pip_diff": "12.8",
+          "sl": "1.09639",
+          "time": "23-Nov 18:15 IST",
+          "type": "EXIT",
+          "zone": "1.09411 - 1.09539"
+        },
         {
           "confirm": "13-Nov 20:00 IST",
           "pip_diff": "7.4",
@@ -53,20 +61,12 @@
           "time": "12-Nov 18:30 IST",
           "type": "EXIT",
           "zone": "1.10841 - 1.10931"
-        },
-        {
-          "confirm": "12-Nov 09:00 IST",
-          "pip_diff": "10.7",
-          "sl": "1.10976",
-          "time": "12-Nov 08:00 IST",
-          "type": "EXIT",
-          "zone": "1.10770 - 1.10876"
         }
       ]
     },
     "GBPUSD": {
       "last_alerted_bar": "2026-11-16T19:45:00+05:30",
-      "last_run": "2026-11-23T19:03:19.470066+05:30",
+      "last_run": "2026-11-23T19:18:35.675321+05:30",
       "last_signal": "EXIT",
       "recent": [
         {
@@ -97,7 +97,7 @@
     },
     "USDCAD": {
       "last_alerted_bar": "2026-11-16T20:00:00+05:30",
-      "last_run": "2026-11-23T19:03:19.496247+05:30",
+      "last_run": "2026-11-23T19:18:35.714460+05:30",
       "last_signal": "ENTRY",
       "recent": [
         {
@@ -112,7 +112,7 @@
     },
     "USDJPY": {
       "last_alerted_bar": "2026-11-20T07:15:00+05:30",
-      "last_run": "2026-11-23T19:03:19.478951+05:30",
+      "last_run": "2026-11-23T19:18:35.688452+05:30",
       "last_signal": "EXIT",
       "recent": [
         {
