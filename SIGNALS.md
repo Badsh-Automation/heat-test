@@ -17,4 +17,4 @@ Har symbol ke last 3 signal (naya upar). Time IST me. SL = zone ke bahar 100 poi
 | AUDUSD | EXIT | 0.67004 - 0.67184 | 18.0 | 19-Nov 06:00 IST | 19-Nov 07:00 IST | 0.67284 |
 | USDCAD | - | - | - | - | - | - |
 
-_Last run: 2026-11-25T01:18:28.966259+05:30_
+_Last run: 2026-11-25T01:33:29.212557+05:30_
