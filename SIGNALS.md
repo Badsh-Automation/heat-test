@@ -12,9 +12,9 @@ Har symbol ke last 3 signal (naya upar). Time IST me. SL = zone ke bahar 100 poi
 | USDJPY | EXIT | 158.940 - 159.059 | 11.9 | 24-Nov 06:15 IST | 24-Nov 07:15 IST | 159.159 |
 | USDJPY | ENTRY | 158.898 - 159.097 | 20.0 | 23-Nov 19:15 IST | 23-Nov 20:15 IST | 158.798 |
 | USDJPY | EXIT | 159.349 - 159.439 | 9.0 | 20-Nov 06:30 IST | 20-Nov 07:30 IST | 159.539 |
+| AUDUSD | EXIT | 0.66488 - 0.66640 | 15.2 | 25-Nov 06:00 IST | 25-Nov 07:00 IST | 0.66740 |
 | AUDUSD | ENTRY | 0.66267 - 0.66330 | 6.2 | 23-Nov 19:30 IST | 23-Nov 20:30 IST | 0.66167 |
 | AUDUSD | ENTRY | 0.66166 - 0.66189 | 2.3 | 23-Nov 03:45 IST | 23-Nov 04:45 IST | 0.66066 |
-| AUDUSD | EXIT | 0.67004 - 0.67184 | 18.0 | 19-Nov 06:00 IST | 19-Nov 07:00 IST | 0.67284 |
 | USDCAD | - | - | - | - | - | - |
 
-_Last run: 2026-11-25T06:48:32.689079+05:30_
+_Last run: 2026-11-25T07:03:29.215766+05:30_
