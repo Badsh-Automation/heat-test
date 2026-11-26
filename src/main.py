@@ -43,6 +43,7 @@ def _fmt(symbol: str, sig: Signal, df: pd.DataFrame) -> tuple[str, str, str, str
 
 
 def _error_alert(st: dict, err: str, dry: bool) -> None:
+    """Error sirf log me dikhega (GitHub Actions log). ntfy par kuch nahi jata."""
     print(f"ERROR: {err}")
     if dry or not config.NOTIFY_ON_ERROR:
         return
