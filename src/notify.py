@@ -4,10 +4,16 @@ from . import config
 
 
 def send(title: str, message: str, priority: str = "default", tags: str = "") -> bool:
-    """ntfy par push. Headers latin-1 hote hain, isliye title/tags me emoji nahi."""
+    """ntfy par push (sirf signals). Headers latin-1 hote hain, isliye title/tags me emoji nahi."""
+    # Safety net: error/warning type message kabhi phone par nahi jayega
+    if "ERROR" in title.upper() or "warning" in tags.lower():
+        print(f"[ntfy blocked: error message] {title} | {message}")
+        return False
+
     if not config.NTFY_TOPIC:
         print(f"[ntfy skipped: NTFY_TOPIC set nahi] {title} | {message}")
         return False
+
     headers = {"Title": title, "Priority": priority}
     if tags:
         headers["Tags"] = tags
